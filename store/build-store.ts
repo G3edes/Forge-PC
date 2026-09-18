@@ -11,7 +11,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import { EMPTY_BUILD, idsToSelection, selectionToIds } from '@/lib/build-utils';
-import { calculateTotal } from '@/lib/calculations';
+import { DEFAULT_PSU_MARGIN, calculateTotal } from '@/lib/calculations';
 import { DEFAULT_RGB } from '@/lib/share';
 import type {
   BuildComponentIds,
@@ -29,6 +29,8 @@ export interface BuildState {
   currentBuildId: string | null;
   build: BuildSelection;
   rgb: RgbSettings;
+  /** Headroom added on top of the estimated draw when recommending a PSU. */
+  psuMargin: number;
   /** Set once the persisted state has been read, so the UI can avoid flicker. */
   hydrated: boolean;
 
@@ -46,6 +48,7 @@ export interface BuildState {
   }) => void;
   setRgb: (patch: Partial<RgbSettings>) => void;
   setRgbEffect: (effect: RgbEffect) => void;
+  setPsuMargin: (margin: number) => void;
   calculateTotal: () => number;
   getComponentIds: () => BuildComponentIds;
 }
@@ -55,6 +58,7 @@ interface PersistedBuildState {
   currentBuildId: string | null;
   componentIds: BuildComponentIds;
   rgb: RgbSettings;
+  psuMargin?: number;
 }
 
 function isPersisted(value: unknown): value is PersistedBuildState {
@@ -73,6 +77,7 @@ export const useBuildStore = create<BuildState>()(
       currentBuildId: null,
       build: { ...EMPTY_BUILD, fans: [] },
       rgb: { ...DEFAULT_RGB },
+      psuMargin: DEFAULT_PSU_MARGIN,
       hydrated: false,
 
       setName: (name) => set({ name }),
@@ -143,6 +148,9 @@ export const useBuildStore = create<BuildState>()(
 
       setRgbEffect: (effect) => set((state) => ({ rgb: { ...state.rgb, effect } })),
 
+      setPsuMargin: (margin) =>
+        set({ psuMargin: Math.min(Math.max(margin, 0), 1) }),
+
       calculateTotal: () => calculateTotal(get().build),
 
       getComponentIds: () => selectionToIds(get().build),
@@ -157,6 +165,7 @@ export const useBuildStore = create<BuildState>()(
           currentBuildId: state.currentBuildId,
           componentIds: selectionToIds(state.build),
           rgb: state.rgb,
+          psuMargin: state.psuMargin,
         }) as unknown as BuildState,
       merge: (persisted, current) => {
         if (!isPersisted(persisted)) return current;
@@ -166,6 +175,7 @@ export const useBuildStore = create<BuildState>()(
           currentBuildId: persisted.currentBuildId ?? null,
           build: idsToSelection(persisted.componentIds),
           rgb: { ...current.rgb, ...(persisted.rgb ?? {}) },
+          psuMargin: persisted.psuMargin ?? current.psuMargin,
         };
       },
     },

@@ -51,7 +51,7 @@ Cada alerta abre explicando o motivo e quais componentes estão envolvidos.
 
 **Análises**
 
-- Consumo estimado por componente, margem de segurança e fonte recomendada.
+- Consumo estimado por componente, com margem de segurança configurável (20%, 30%, 40% ou 50%) e fonte recomendada.
 - Índices estimados de Gaming / Productivity / Rendering.
 - Temperaturas aproximadas de CPU e GPU (idle e em jogo) e índice de refrigeração.
 

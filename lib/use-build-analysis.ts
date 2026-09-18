@@ -31,16 +31,17 @@ export interface BuildAnalysis {
 /** Recomputes every derived figure whenever the selection changes. */
 export function useBuildAnalysis(): BuildAnalysis {
   const build = useBuildStore((state) => state.build);
+  const psuMargin = useBuildStore((state) => state.psuMargin);
 
   return useMemo(
     () => ({
-      report: checkCompatibility(build),
-      power: estimatePower(build),
+      report: checkCompatibility(build, psuMargin),
+      power: estimatePower(build, psuMargin),
       performance: estimatePerformance(build),
       temperatures: estimateTemperatures(build),
       total: calculateTotal(build),
       rows: calculateCategoryTotals(build),
     }),
-    [build],
+    [build, psuMargin],
   );
 }

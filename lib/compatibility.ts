@@ -14,7 +14,7 @@ import type {
   CompatibilitySeverity,
 } from '@/types/build';
 import { CATEGORY_ORDER, type ComponentCategory } from '@/types/components';
-import { estimatePower } from './calculations';
+import { DEFAULT_PSU_MARGIN, estimatePower } from './calculations';
 
 /** Slots that must be filled before a build is considered complete. */
 const REQUIRED_CATEGORIES: ComponentCategory[] = [
@@ -27,7 +27,10 @@ const REQUIRED_CATEGORIES: ComponentCategory[] = [
   'cooler',
 ];
 
-export function checkCompatibility(build: BuildSelection): CompatibilityReport {
+export function checkCompatibility(
+  build: BuildSelection,
+  psuMargin: number = DEFAULT_PSU_MARGIN,
+): CompatibilityReport {
   const issues: CompatibilityIssue[] = [];
 
   checkCpuMotherboard(build, issues);
@@ -36,7 +39,7 @@ export function checkCompatibility(build: BuildSelection): CompatibilityReport {
   checkMotherboardCase(build, issues);
   checkCooler(build, issues);
   checkStorage(build, issues);
-  checkPsu(build, issues);
+  checkPsu(build, issues, psuMargin);
   checkFans(build, issues);
   checkGraphicsOutput(build, issues);
 
@@ -358,9 +361,13 @@ function checkStorage(build: BuildSelection, issues: CompatibilityIssue[]): void
   }
 }
 
-function checkPsu(build: BuildSelection, issues: CompatibilityIssue[]): void {
+function checkPsu(
+  build: BuildSelection,
+  issues: CompatibilityIssue[],
+  psuMargin: number,
+): void {
   const { psu, gpu, case: pcCase } = build;
-  const power = estimatePower(build);
+  const power = estimatePower(build, psuMargin);
 
   if (psu && power.estimatedDraw > 0) {
     const wattage = psu.specifications.wattage;

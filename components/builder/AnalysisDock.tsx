@@ -83,7 +83,7 @@ export function AnalysisDock({ analysis }: { analysis: BuildAnalysis }) {
       {!collapsed ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
           {tab === 'compatibility' ? <CompatibilityPanel report={analysis.report} /> : null}
-          {tab === 'power' ? <PowerPanel power={analysis.power} /> : null}
+          {tab === 'power' ? <PowerPanel power={analysis.power} editableMargin /> : null}
           {tab === 'performance' ? <PerformancePanel performance={analysis.performance} /> : null}
           {tab === 'temperature' ? <TemperaturePanel temperatures={analysis.temperatures} /> : null}
           {tab === 'rgb' ? <RgbPanel /> : null}

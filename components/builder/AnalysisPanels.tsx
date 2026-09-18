@@ -5,17 +5,29 @@ import { Activity, Gauge, Thermometer, Zap } from 'lucide-react';
 import { PanelHeader } from '@/components/ui/Panel';
 import { ProgressBar } from '@/components/ui/Status';
 import { cn } from '@/lib/cn';
+import { useBuildStore } from '@/store/build-store';
 import type {
   PerformanceEstimate,
   PowerEstimate,
   TemperatureEstimate,
 } from '@/types/build';
 
+/** Safety margins offered by the power panel. */
+const PSU_MARGINS = [0.2, 0.3, 0.4, 0.5];
+
 const ESTIMATE_NOTE =
   'Estimativa gerada a partir de dados mock — use apenas como referência relativa.';
 
 /** Consumo por componente + fonte recomendada. */
-export function PowerPanel({ power }: { power: PowerEstimate }) {
+export function PowerPanel({
+  power,
+  editableMargin = false,
+}: {
+  power: PowerEstimate;
+  /** Shows the safety-margin selector (builder only; read-only elsewhere). */
+  editableMargin?: boolean;
+}) {
+  const setPsuMargin = useBuildStore((state) => state.setPsuMargin);
   const hasData = power.estimatedDraw > 0;
   const loadTone =
     power.loadPercent === null
@@ -52,9 +64,32 @@ export function PowerPanel({ power }: { power: PowerEstimate }) {
               </div>
             </div>
 
-            <p className="mt-1 text-[10px] text-ink-faint">
-              Margem de segurança aplicada: {Math.round(power.margin * 100)}%
-            </p>
+            {editableMargin ? (
+              <div className="mt-3 flex items-center gap-2">
+                <span className="panel-heading">Margem</span>
+                <div className="flex gap-1">
+                  {PSU_MARGINS.map((margin) => (
+                    <button
+                      key={margin}
+                      type="button"
+                      onClick={() => setPsuMargin(margin)}
+                      className={cn(
+                        'focus-ring rounded-md border px-2 py-0.5 text-[10px] tabular-nums transition-colors',
+                        Math.abs(power.margin - margin) < 0.001
+                          ? 'border-accent/60 bg-accent/10 text-ink'
+                          : 'border-line text-ink-faint hover:text-ink',
+                      )}
+                    >
+                      {Math.round(margin * 100)}%
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="mt-1 text-[10px] text-ink-faint">
+                Margem de segurança aplicada: {Math.round(power.margin * 100)}%
+              </p>
+            )}
 
             {power.loadPercent !== null ? (
               <div className="mt-3">
